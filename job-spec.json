@@ -1,0 +1,17 @@
+{
+  "job_title": "Senior Blockchain Developer",
+  "salary_range": "200K-300K",
+  "tree": {
+    "1": [["2", "3"]],
+    "2": [
+      [],
+      {
+        "checkpoint": true,
+        "candidate_profile": "Generalist"
+      }
+    ],
+    "3": [[]]
+  },
+  "root": "1",
+  "closing_indexer": "0x83a1BB0A32B2c03877757a7eD7E9F18C8fbDa7eA"
+}

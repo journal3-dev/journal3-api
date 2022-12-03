@@ -1,8 +1,5 @@
 var dotenv = require("dotenv");
 var constants = require("../constants");
-
-dotenv.config();
-
 var express = require("express");
 var ethers = require("ethers");
 var bodyParser = require("body-parser");
@@ -10,6 +7,7 @@ var multer = require("multer");
 const pinataSDK = require("@pinata/sdk");
 const fs = require("fs");
 
+dotenv.config();
 var storage = multer.diskStorage({
   destination: function (req, file, cb) {
     cb(null, "./uploads/");
@@ -84,28 +82,149 @@ app.post("/upload-kaggle-notebooks", async function (req, res) {
     wallet
   );
 
-  await contract.setRawData(userAddress, IpfsHash, true, {
+  const txn = await contract.setRawData(userAddress, IpfsHash, true, {
     gasLimit: 100000,
   });
+
+  await txn.wait();
 
   res.send("Uploaded notebooks to IPFS!");
 });
 
-app.post("/create-job", async function (req, res) {
-  // add check with DataOnboarder here
-  const userAddress = "0x83a1BB0A32B2c03877757a7eD7E9F18C8fbDa7eA";
-
-  const contract = new ethers.Contract(
-    constants.JOURNAL3JOBS_CONTRACT_ADDRESS,
-    Journal3JobsABI,
-    wallet
+const getParams = (tree) => {
+  const qualifications = Object.keys(tree);
+  const qualifications_size = qualifications.length;
+  const qualification_filtering = Array.from(Array(qualifications_size), () =>
+    new Array(qualifications_size).fill(0)
   );
 
-  await contract.setRawData(userAddress, IpfsHash, true, {
-    gasLimit: 100000,
-  });
+  var checkpoints = [];
 
-  res.send("Uploaded notebooks to IPFS!");
+  for (var key in tree) {
+    if (tree.hasOwnProperty(key)) {
+      const value = tree[key];
+
+      const childrenNodesArray = value[0];
+
+      if (value.length > 1) {
+        const checkPointInfo = value[1];
+        const checkPoint = [key, checkPointInfo["candidate_profile"], []];
+        checkpoints.push(checkPoint);
+      }
+
+      for (var i = 0; i < childrenNodesArray.length; i++) {
+        const child = childrenNodesArray[i];
+        qualification_filtering[parseInt(key) - 1][parseInt(child) - 1] = 1;
+      }
+    }
+  }
+
+  const checkpoint_size = checkpoints.length;
+
+  return {
+    qualifications,
+    qualification_filtering,
+    checkpoints,
+    checkpoint_size,
+    qualifications_size,
+  };
+};
+
+app.post("/create-job", async function (req, res) {
+  try {
+    // add check with DataOnboarder here
+    const fileName = req.files[0].originalname;
+    const readableStreamForFile = fs.createReadStream("./uploads/" + fileName);
+
+    const job = require("../uploads/" + fileName);
+
+    const jobParams = getParams(job["tree"]);
+
+    const options = {
+      pinataMetadata: {
+        name: fileName,
+      },
+    };
+
+    const { IpfsHash } = await pinata.pinFileToIPFS(
+      readableStreamForFile,
+      options
+    );
+
+    const contract = new ethers.Contract(
+      constants.JOURNAL3JOBS_CONTRACT_ADDRESS,
+      Journal3JobsABI,
+      wallet
+    );
+    const gasPrice = await provider.getGasPrice();
+
+    const txn = await contract.createJob(
+      IpfsHash,
+      jobParams.qualifications,
+      jobParams.qualification_filtering,
+      jobParams.checkpoints,
+      jobParams.checkpoint_size,
+      jobParams.qualifications_size,
+      job["root"],
+      job["closing_indexer"],
+      {
+        gasLimit: gasPrice,
+      }
+    );
+    await txn.wait();
+    res.send("Created job!");
+  } catch (error) {
+    console.log(error);
+  }
+});
+
+app.post("/create-skill", async function (req, res) {
+  try {
+    // add check with DataOnboarder here
+    const fileName = req.files[0].originalname;
+    const readableStreamForFile = fs.createReadStream("./uploads/" + fileName);
+
+    const job = require("../uploads/" + fileName);
+
+    const jobParams = getParams(job["tree"]);
+
+    const options = {
+      pinataMetadata: {
+        name: fileName,
+      },
+    };
+
+    const { IpfsHash } = await pinata.pinFileToIPFS(
+      readableStreamForFile,
+      options
+    );
+
+    const contract = new ethers.Contract(
+      constants.JOURNAL3JOBS_CONTRACT_ADDRESS,
+      Journal3JobsABI,
+      wallet
+    );
+    const gasPrice = await provider.getGasPrice();
+
+    const txn = await contract.createJob(
+      IpfsHash,
+      jobParams.qualifications,
+      jobParams.qualification_filtering,
+      jobParams.checkpoints,
+      jobParams.checkpoint_size,
+      jobParams.qualifications_size,
+      job["root"],
+      job["closing_indexer"],
+      {
+        gasLimit: gasPrice,
+      }
+    );
+    await txn.wait();
+
+    res.send("Created job!");
+  } catch (error) {
+    console.log(error);
+  }
 });
 
 app.listen(port, () => console.log(`Running on port ${port}`));
