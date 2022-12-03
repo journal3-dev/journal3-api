@@ -1,0 +1,9 @@
+{
+  "oracle": "kaggle.com",
+  "query": {
+    "pep_accuracy": { "$eq": ["good", "excellent"] },
+    "framework": { "$eq": ["numpy", "tensorflow"] }
+  },
+  "pre_req_check": [1, 2, 3],
+  "tags": { "skill_type": "ADVANCED", "skill_check": "code_quality" }
+}

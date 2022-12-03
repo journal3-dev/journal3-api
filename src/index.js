@@ -18,6 +18,9 @@ var storage = multer.diskStorage({
   },
 });
 
+const nameToOracleAddress = {};
+nameToOracleAddress["kaggle.com"] = constants.ORACLE_CONTRACT_ADDRESS;
+
 const pinata = new pinataSDK({ pinataJWTKey: process.env.PINATA_JWT });
 
 const app = express();
@@ -29,6 +32,7 @@ app.use(multer({ storage: storage }).any());
 const Journal3TokenABI = require("../abi/Journal3TokenABI.json");
 const OracleContractABI = require("../abi/OracleContractABI.json");
 const Journal3JobsABI = require("../abi/Journal3JobsABI.json");
+const SkillNFTStandardABI = require("../abi/SkillNFTStandardABI.json");
 
 var provider = new ethers.providers.JsonRpcProvider(
   process.env.QUICKNODE_HTTP_URL
@@ -58,37 +62,41 @@ app.post("/faucet", async (req, res) => {
 });
 
 app.post("/upload-kaggle-notebooks", async function (req, res) {
-  const fileName = req.files[0].originalname;
-  const readableStreamForFile = fs.createReadStream("./uploads/" + fileName);
+  try {
+    const fileName = req.files[0].originalname;
+    const readableStreamForFile = fs.createReadStream("./uploads/" + fileName);
 
-  const options = {
-    pinataMetadata: {
-      name: fileName,
-    },
-  };
+    const options = {
+      pinataMetadata: {
+        name: fileName,
+      },
+    };
 
-  const { IpfsHash } = await pinata.pinFileToIPFS(
-    readableStreamForFile,
-    options
-  );
+    const { IpfsHash } = await pinata.pinFileToIPFS(
+      readableStreamForFile,
+      options
+    );
 
-  // add check with DataOnboarder here
+    // add check with DataOnboarder here
 
-  const userAddress = req.body.userAddress;
+    const userAddress = req.body.userAddress;
 
-  const contract = new ethers.Contract(
-    constants.ORACLE_CONTRACT_ADDRESS,
-    OracleContractABI,
-    wallet
-  );
+    const contract = new ethers.Contract(
+      constants.ORACLE_CONTRACT_ADDRESS,
+      OracleContractABI,
+      wallet
+    );
 
-  const txn = await contract.setRawData(userAddress, IpfsHash, true, {
-    gasLimit: 100000,
-  });
+    const txn = await contract.setRawData(userAddress, IpfsHash, true, {
+      gasLimit: 100000,
+    });
 
-  await txn.wait();
+    await txn.wait();
 
-  res.send("Uploaded notebooks to IPFS!");
+    res.send("Uploaded notebooks to IPFS!");
+  } catch (error) {
+    console.log(error);
+  }
 });
 
 const getParams = (tree) => {
@@ -156,7 +164,6 @@ app.post("/create-job", async function (req, res) {
       Journal3JobsABI,
       wallet
     );
-    const gasPrice = await provider.getGasPrice();
 
     const txn = await contract.createJob(
       IpfsHash,
@@ -166,11 +173,9 @@ app.post("/create-job", async function (req, res) {
       jobParams.checkpoint_size,
       jobParams.qualifications_size,
       job["root"],
-      job["closing_indexer"],
-      {
-        gasLimit: gasPrice,
-      }
+      job["closing_indexer"]
     );
+
     await txn.wait();
     res.send("Created job!");
   } catch (error) {
@@ -178,49 +183,44 @@ app.post("/create-job", async function (req, res) {
   }
 });
 
+const getNftStandardInfo = (skillNftStandard) => {
+  const oracle = nameToOracleAddress[skillNftStandard["oracle"]];
+  const validator_keys = Object.keys(skillNftStandard["query"]);
+  const validator_values = [];
+
+  for (var key in skillNftStandard["query"]) {
+    const value = skillNftStandard["query"][key];
+    validator_values.push(skillNftStandard["query"][key]["$eq"]);
+  }
+
+  const token_gating = skillNftStandard["pre_req_check"];
+
+  return { oracle, validator_keys, validator_values, token_gating };
+};
+
 app.post("/create-skill", async function (req, res) {
   try {
     // add check with DataOnboarder here
     const fileName = req.files[0].originalname;
-    const readableStreamForFile = fs.createReadStream("./uploads/" + fileName);
-
-    const job = require("../uploads/" + fileName);
-
-    const options = {
-      pinataMetadata: {
-        name: fileName,
-      },
-    };
-
-    const { IpfsHash } = await pinata.pinFileToIPFS(
-      readableStreamForFile,
-      options
-    );
+    const skillNftStandard = require("../uploads/" + fileName);
+    const skillNftStandardInfo = getNftStandardInfo(skillNftStandard);
 
     const contract = new ethers.Contract(
-      constants.JOURNAL3JOBS_CONTRACT_ADDRESS,
-      Journal3JobsABI,
+      constants.SKILL_NFT_STANDARD_CONTRACT_ADDRESS,
+      SkillNFTStandardABI,
       wallet
     );
 
-    const gasPrice = await provider.getGasPrice();
-
-    const txn = await contract.createJob(
-      IpfsHash,
-      jobParams.qualifications,
-      jobParams.qualification_filtering,
-      jobParams.checkpoints,
-      jobParams.checkpoint_size,
-      jobParams.qualifications_size,
-      job["root"],
-      job["closing_indexer"],
-      {
-        gasLimit: gasPrice,
-      }
+    const txn = await contract.create_skill(
+      skillNftStandardInfo.oracle,
+      skillNftStandardInfo.validator_keys,
+      skillNftStandardInfo.validator_values,
+      skillNftStandardInfo.token_gating
     );
+
     await txn.wait();
 
-    res.send("Created job!");
+    res.send("Created skill standard!");
   } catch (error) {
     console.log(error);
   }
