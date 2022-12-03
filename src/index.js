@@ -186,8 +186,6 @@ app.post("/create-skill", async function (req, res) {
 
     const job = require("../uploads/" + fileName);
 
-    const jobParams = getParams(job["tree"]);
-
     const options = {
       pinataMetadata: {
         name: fileName,
@@ -204,6 +202,7 @@ app.post("/create-skill", async function (req, res) {
       Journal3JobsABI,
       wallet
     );
+
     const gasPrice = await provider.getGasPrice();
 
     const txn = await contract.createJob(
