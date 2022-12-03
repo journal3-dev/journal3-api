@@ -1,0 +1,256 @@
+[
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "previousOwner",
+				"type": "address"
+			},
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "newOwner",
+				"type": "address"
+			}
+		],
+		"name": "OwnershipTransferred",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "idx",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "amount",
+				"type": "uint256"
+			}
+		],
+		"name": "staking_successful",
+		"type": "event"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "idx",
+				"type": "uint256"
+			}
+		],
+		"name": "apply_job",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "claim_royalties_skill_creator",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "idx",
+				"type": "uint256"
+			}
+		],
+		"name": "close_job",
+		"outputs": [
+			{
+				"internalType": "bool",
+				"name": "",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "string",
+				"name": "metadata_ipfs",
+				"type": "string"
+			},
+			{
+				"internalType": "uint256[]",
+				"name": "qualifications",
+				"type": "uint256[]"
+			},
+			{
+				"internalType": "uint256[][]",
+				"name": "qualification_filtering",
+				"type": "uint256[][]"
+			},
+			{
+				"components": [
+					{
+						"internalType": "uint256",
+						"name": "checkpoint_addr",
+						"type": "uint256"
+					},
+					{
+						"internalType": "string",
+						"name": "checkpoint_name",
+						"type": "string"
+					},
+					{
+						"internalType": "address[]",
+						"name": "candidates",
+						"type": "address[]"
+					}
+				],
+				"internalType": "struct Checkpoints[]",
+				"name": "checkpoints",
+				"type": "tuple[]"
+			},
+			{
+				"internalType": "uint256",
+				"name": "checkpoint_size",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "qualifications_size",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "root",
+				"type": "uint256"
+			},
+			{
+				"internalType": "address",
+				"name": "closing_indexer",
+				"type": "address"
+			}
+		],
+		"name": "createJob",
+		"outputs": [
+			{
+				"internalType": "bool",
+				"name": "",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "renounceOwnership",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "idx",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "amount",
+				"type": "uint256"
+			}
+		],
+		"name": "stake_jou_job",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "newOwner",
+				"type": "address"
+			}
+		],
+		"name": "transferOwnership",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "jou_address",
+				"type": "address"
+			}
+		],
+		"stateMutability": "nonpayable",
+		"type": "constructor"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"name": "all_jobs",
+		"outputs": [
+			{
+				"internalType": "string",
+				"name": "metadata_ipfs",
+				"type": "string"
+			},
+			{
+				"internalType": "uint256",
+				"name": "jou_staked",
+				"type": "uint256"
+			},
+			{
+				"internalType": "bool",
+				"name": "is_active",
+				"type": "bool"
+			},
+			{
+				"internalType": "address",
+				"name": "closing_indexer",
+				"type": "address"
+			},
+			{
+				"internalType": "bool",
+				"name": "gasless_experience",
+				"type": "bool"
+			},
+			{
+				"internalType": "uint256",
+				"name": "root",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "owner",
+		"outputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	}
+]
