@@ -75,8 +75,8 @@ app.post("/upload-kaggle-notebooks", async function (req, res) {
   );
 
   // add check with DataOnboarder here
-  // userAddress in form??
-  const userAddress = "0x83a1BB0A32B2c03877757a7eD7E9F18C8fbDa7eA";
+
+  const userAddress = req.body.userAddress;
 
   const contract = new ethers.Contract(
     constants.ORACLE_CONTRACT_ADDRESS,
